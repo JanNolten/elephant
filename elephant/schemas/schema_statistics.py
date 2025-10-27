@@ -15,8 +15,10 @@ from pydantic import (
 )
 import neo
 from enum import Enum
+import elephant
 from class_builder import make_class_model
 
+from elephant.kernels import Kernel
 import field_validator as fv
 import field_serializer as fs
 
@@ -47,6 +49,57 @@ class PydanticMeanFiringRate(BaseModel):
                 raise TypeError("spiketrain is a np.ndarray or list but t_start or t_stop is pq.Quantity")
         elif not (isinstance(self.t_start, pq.Quantity) and isinstance(self.t_stop, pq.Quantity)):
             raise TypeError("spiketrain is a neo.SpikeTrain or pq.Quantity but t_start or t_stop is not pq.Quantity")
+        return self
+    
+class PydanticInstantaneousRate(BaseModel):
+    """
+    PyDantic Class to wrap the elephant.statistics.instantaneous_rate function
+    with additional type checking and json_schema by PyDantic.
+    """
+
+    class KernelOptions(Enum):
+        auto = "auto"
+
+    spiketrains: Any = Field(..., description="Input spike train(s)")
+    sampling_period: Any = Field(..., gt=0, description="Time stamp resolution of spike times")
+    kernel: Union[KernelOptions, Any] = Field(KernelOptions.auto, description="Kernel for convolution")
+    cutoff: Optional[float] = Field(5.0, gt=0, description="cutoff of probability distribution")
+    t_start: Optional[Any] = Field(None, ge=0, description="Start time")
+    t_stop: Optional[Any] = Field(None, gt=0, description="Stop time")
+    trim: Optional[bool] = Field(False, description="Only return region of convolved signal")
+    center_kernel: Optional[bool] = Field(True, description="Center the kernel on spike")
+    border_correction: Optional[bool] = Field(False, description="Apply border correction")
+    pool_trials: Optional[bool] = Field(False, description="Calc firing rates averaged over trials when spiketrains is Trials object")
+    pool_spike_trains: Optional[bool] = Field(False, description="Calc firing rates averaged over spiketrains")
+
+
+    @field_validator("spiketrains")
+    @classmethod
+    def validate_spiketrains(cls, v, info):
+        if(isinstance(v, list)):
+            return fv.validate_spiketrains(v, info, allowed_types=(list,), allowed_content_types=(neo.SpikeTrain,))
+        return fv.validate_spiketrain(v, info, allowed_types=(neo.SpikeTrain, elephant.trials.Trials))
+
+    @field_validator("sampling_period")
+    @classmethod
+    def validate_quantity(cls, v, info):
+        return fv.validate_quantity(v, info)
+    
+    @field_validator("kernel")
+    @classmethod
+    def validate_kernel(cls, v, info):
+        return fv.validate_type(v, info, allowed_types=(cls.KernelOptions, Kernel), allow_none=False)
+    
+    @field_validator("t_start", "t_stop")
+    @classmethod
+    def validate_time(cls, v, info):
+        return fv.validate_quantity(v, info, allow_none=True)
+    
+    @model_validator(mode="after")
+    def validate_model(self) -> Self:             
+        if(isinstance(self.kernel, Kernel) and self.cutoff < self.kernel.min_cutoff):
+            raise UserWarning(f"cutoff {self.cutoff} is smaller than the minimum cutoff {self.kernel.min_cutoff} of the kernel")
+        fv.model_validate_spiketrains_same_t_start_stop(self.spiketrains, self.t_start, self.t_stop, warning=True)
         return self
 
 class PydanticTimeHistogram(BaseModel):

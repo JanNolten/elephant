@@ -78,4 +78,3 @@ class PydanticJointJWindowAnalysis(BaseModel):
         if winstep_bintime * self.bin_size.magnitude != self.win_step.magnitude:
             raise UserWarning(f"The ratio between the win_step and the bin_size is not an integer")
         return self
-    

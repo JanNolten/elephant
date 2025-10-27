@@ -40,6 +40,8 @@ def get_length(obj) -> int:
     
     elif isinstance(obj, elephant.conversion.BinnedSpikeTrain):
         return obj.num_bins  # BinnedSpikeTrain has num_bins attribute
+    elif isinstance(obj, elephant.trials.Trials):
+        return len(obj.trials)  # Trials has trials attribute
     else:
         raise TypeError(
             f"Unsupported type for length computation: {type(obj).__name__}"
