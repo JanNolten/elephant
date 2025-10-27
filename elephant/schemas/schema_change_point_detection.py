@@ -11,7 +11,7 @@ from pydantic import (
 )
 import neo
 
-import field_validation as fv
+import field_validator as fv
 
 class PydanticMultipleFilterTest(BaseModel):
     """

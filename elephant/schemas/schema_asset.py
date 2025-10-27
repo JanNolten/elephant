@@ -17,7 +17,7 @@ import neo
 from enum import Enum
 from class_builder import make_class_model
 from os import PathLike
-import field_validation as fv
+import field_validator as fv
 import field_serializer as fs
 
 

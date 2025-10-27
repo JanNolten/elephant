@@ -16,7 +16,7 @@ from pydantic import (
 import neo
 from enum import Enum
 
-import field_validation as fv
+import field_validator as fv
 import field_serializer as fs
 
 class PydanticCovariance(BaseModel):

@@ -9,7 +9,7 @@ from pydantic import (
     Field,
     field_validator,
 )
-import field_validation as fv
+import field_validator as fv
 import field_serializer as fs
 
 class PydanticCellAssemblyDetection(BaseModel):
