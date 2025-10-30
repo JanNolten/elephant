@@ -1,27 +1,24 @@
 
 import pytest
-import warnings
 import quantities as pq
 import neo
 import numpy as np
 
 import elephant
-import inspect
 
 from pydantic import ValidationError
 
-from elephant.schemas import (
-    PydanticTimeHistogram,
-    PydanticFanofactor,
-    PydanticComplexityPdf,
-    PydanticSpade,
-    PydanticConceptsMining,
-    PydanticPValueSpectrum,
-    PydanticJointJWindowAnalysis,
-    PydanticCellAssemblyDetection,
-    PydanticOptimalKernelBandwidth,
-    PydanticLvr,
-)
+from elephant.schemas.schema_asset import *;
+from elephant.schemas.schema_cell_assembly_detection import *;
+from elephant.schemas.schema_change_point_detection import *;
+from elephant.schemas.schema_cubic import *;
+from elephant.schemas.schema_functional_connectivity import *;
+from elephant.schemas.schema_spade import *;
+from elephant.schemas.schema_unitary_event_analysis import *;
+from elephant.schemas.schema_statistics import *;
+from elephant.schemas.schema_spike_train_correlation import *;
+from elephant.schemas.schema_spike_train_dissimilarity import *;
+from elephant.schemas.schema_spike_train_synchrony import *;
 
 
 def make_spiketrain():

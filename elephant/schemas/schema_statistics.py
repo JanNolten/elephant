@@ -16,11 +16,11 @@ from pydantic import (
 import neo
 from enum import Enum
 import elephant
-from class_builder import make_class_model
+from elephant.schemas.class_builder import make_class_model
 
 from elephant.kernels import Kernel
-import field_validator as fv
-import field_serializer as fs
+import elephant.schemas.field_validator as fv
+import elephant.schemas.field_serializer as fs
 
 class PydanticMeanFiringRate(BaseModel):
     """

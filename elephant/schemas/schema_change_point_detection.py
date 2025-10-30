@@ -11,7 +11,7 @@ from pydantic import (
 )
 import neo
 
-import field_validator as fv
+import elephant.schemas.field_validator as fv
 
 class PydanticMultipleFilterTest(BaseModel):
     """

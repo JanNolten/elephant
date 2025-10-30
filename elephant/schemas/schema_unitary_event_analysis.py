@@ -15,8 +15,8 @@ from pydantic import (
 import neo
 from enum import Enum
 
-import field_validator as fv
-import field_serializer as fs
+import elephant.schemas.field_validator as fv
+import elephant.schemas.field_serializer as fs
 
 
 class PydanticJointJWindowAnalysis(BaseModel):

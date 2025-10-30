@@ -15,8 +15,8 @@ from enum import Enum
 import elephant
 import scipy.sparse as sp
 
-import field_validator as fv
-import field_serializer as fs
+import elephant.schemas.field_validator as fv
+import elephant.schemas.field_serializer as fs
 
 class StatCorrOptions(str, Enum):
     bonferroni = "bonferroni"

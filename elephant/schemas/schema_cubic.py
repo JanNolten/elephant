@@ -7,15 +7,9 @@ from pydantic import (
     field_validator,
 )
 import neo
-from enum import Enum
-import elephant
 
-import sys
-from pathlib import Path
 
-# Add parent directory to sys.path
-sys.path.append(str(Path(__file__).resolve().parents[1]))
-import field_validator as fv
+import elephant.schemas.field_validator as fv
 
 class PydanticCubic(BaseModel):
     """

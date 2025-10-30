@@ -7,7 +7,7 @@ from pydantic import (
     field_validator,
 )
 
-import field_validator as fv
+import elephant.schemas.field_validator as fv
 
 class PydanticTotalSpikingProbability(BaseModel):
     """

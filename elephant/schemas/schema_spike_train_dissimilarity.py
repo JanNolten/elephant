@@ -13,8 +13,8 @@ import neo
 from enum import Enum
 import elephant
 
-import field_validator as fv
-import field_serializer as fs
+import elephant.schemas.field_validator as fv
+import elephant.schemas.field_serializer as fs
 
 
 class PydanticVictorPurpuraDistance(BaseModel):
