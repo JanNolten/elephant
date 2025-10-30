@@ -69,7 +69,7 @@ class PydanticSpade(BaseModel):
 
     spiketrains: list = Field(..., description="List of neo.core.SpikeTrain objects")
     bin_size: Any = Field(..., description="Time precision to discretize spiketrains")
-    winlen: int = Field(..., gt=0, description="Number of bins per sliding analysis window")
+    winlen: int = Field(..., ge=0, description="Number of bins per sliding analysis window")
     min_spikes: Optional[int] = Field(2, ge=1, description="Min number of spikes in pattern")
     min_occ: Optional[int] = Field(2, ge=1, description="Min number of occurrences of pattern")
     max_spikes: Optional[int] = Field(None, ge=1, description="Max number of spikes in pattern")

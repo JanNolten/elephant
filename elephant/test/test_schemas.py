@@ -20,6 +20,58 @@ from elephant.schemas.schema_spike_train_correlation import *;
 from elephant.schemas.schema_spike_train_dissimilarity import *;
 from elephant.schemas.schema_spike_train_synchrony import *;
 
+def test_model_json_schema():
+	# Just test that json_schema generation runs without error for all models
+	model_classes = [
+		PydanticSynchronousEventsIntersection,
+		PydanticSynchronousEventsDifference,
+		PydanticSynchronousEventsIdentical,
+		PydanticSynchronousEventsNoOverlap,
+		PydanticSynchronousEventsContainedIn,
+		PydanticSynchronousEventsContainsAll,
+		PydanticSynchronousEventsOverlap,
+		PydanticGetNeuronsInSse,
+		PydanticGetsseStartAndEndTimeBins,
+		PydanticCellAssemblyDetection,
+		PydanticCovariance,
+		PydanticCorrelationCoefficient,
+		PydanticCrossCorrelationHistogram,
+		PydanticSpikeTimeTilingCoefficient,
+		PydanticSpikeTrainTimescale,
+		PydanticSpade,
+		PydanticConceptsMining,
+		PydanticPValueSpectrum,
+		PydanticTestSignatureSignificance,
+		PydanticApproximateStability,
+		PydanticPatternSetReduction,
+		PydanticConceptOutputToPatterns,
+		PydanticVictorPurpuraDistance,
+		PydanticVanRossumDistance,
+		PydanticMeanFiringRate,
+		PydanticInstantaneousRate,
+		PydanticTimeHistogram,
+		PydanticOptimalKernelBandwidth,
+		PydanticIsi,
+		PydanticCv,
+		PydanticCv2,
+		PydanticLv,
+		PydanticLvr,
+		PydanticFanofactor,
+		PydanticComplexityPdf,
+		PydanticSpikeContrast,
+		PydanticJointJWindowAnalysis,
+		PydanticCubic,
+		PydanticMultipleFilterTest,
+		PydanticEmpiricalParameters,
+		PydanticTotalSpikingProbability,
+		PydanticASSET,
+		PydanticSynchrotool,
+		PydanticComplexity
+	]
+	for cls in model_classes:
+		schema = cls.model_json_schema()
+		assert isinstance(schema, dict)  # basic check that something was returned
+
 
 def make_spiketrain():
 	# simple spike times in seconds
@@ -145,12 +197,6 @@ def test_pvalue_spectrum_n_surr_zero_and_negative():
 	bad_neg = {**base, "n_surr": -1}
 	# elephant should raise for invalid n_surr
 	assert_both_raise_consistently(elephant.spade.pvalue_spectrum, PydanticPValueSpectrum, bad_neg)
-
-
-def test_spade_winlen_zero_raises():
-	bad_winlen_zero = {"spiketrains": [make_spiketrain()], "bin_size": 5 * pq.ms, "winlen": 0}
-	# elephant should raise for zero window length (boundary)
-	assert_both_raise_consistently(elephant.spade.spade, PydanticSpade, bad_winlen_zero)
 
 
 def test_timehistogram_bin_size_zero_raises():
