@@ -70,6 +70,13 @@ def is_matrix(obj) -> bool:
         return arr.ndim >= 2
     return False
 
+def validate_covariance_matrix_rank_deficient(obj, info):
+    """
+    Check if the covariance matrix of the given object is rank deficient.
+    Should work for elephant.trials.Trials, list of neo.core.spiketrainlist.SpikeTrainList or list of list of neo.core.SpikeTrain.
+    """
+    return obj
+
 def validate_type(
     value,
     info,
@@ -133,6 +140,15 @@ def validate_spiketrain(value, info, allowed_types=(list, neo.SpikeTrain, pq.Qua
 
 def validate_spiketrains(value, info, allowed_types = (list,), allow_none = False, min_length = 1, allowed_content_types = (list, neo.SpikeTrain, pq.Quantity, np.ndarray), min_length_content = 0):
     validate_array_content(value, info, allowed_types, allow_none, min_length, allowed_content_types, min_length_content)
+    return value
+
+def validate_spiketrains_matrix(value, info, allowed_types = (elephant.trials.Trials, list[neo.core.spiketrainlist.SpikeTrainList], list[list[neo.core.SpikeTrain]]), allow_none = False, min_length = 1, check_rank_deficient = False):
+    if isinstance(value, list):
+        validate_spiketrains(value, info, allowed_content_types=(neo.core.spiketrainlist,list[neo.core.SpikeTrain],))
+    else:
+        validate_type(value, info, (elephant.trials.Trials,), allow_none=False)
+    if check_rank_deficient:
+        return validate_covariance_matrix_rank_deficient(value, info)
     return value
 
 def validate_time(value, info, allowed_types=(float, pq.Quantity) ,allow_none=True):
