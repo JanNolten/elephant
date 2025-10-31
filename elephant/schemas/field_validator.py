@@ -4,6 +4,7 @@ import neo
 import elephant
 from enum import Enum
 from typing import Any
+import warnings
 
 def get_length(obj) -> int:
     """
@@ -26,22 +27,21 @@ def get_length(obj) -> int:
     if obj is None:
         raise ValueError("Cannot get length of None")
 
-    if isinstance(obj, (list,tuple)):
+    if isinstance(obj, elephant.trials.Trials):
+        return len(obj.trials)
+    elif isinstance(obj, elephant.conversion.BinnedSpikeTrain):
+        return obj.n_bins
+    elif isinstance(obj, neo.SpikeTrain):
         return len(obj)
-
+    elif isinstance(obj, pq.Quantity):
+        return obj.size
     elif isinstance(obj, np.ndarray):
         return obj.size
+    elif isinstance(obj, (list,tuple)):
+        return len(obj)
 
-    elif isinstance(obj, pq.Quantity):
-        return obj.size  # pq.Quantity is a subclass of ndarray
 
-    elif isinstance(obj, neo.SpikeTrain):
-        return len(obj)  # SpikeTrain behaves like an array of spike times
     
-    elif isinstance(obj, elephant.conversion.BinnedSpikeTrain):
-        return obj.num_bins  # BinnedSpikeTrain has num_bins attribute
-    elif isinstance(obj, elephant.trials.Trials):
-        return len(obj.trials)  # Trials has trials attribute
     else:
         raise TypeError(
             f"Unsupported type for length computation: {type(obj).__name__}"
@@ -102,7 +102,7 @@ def validate_length(
     if min_length>0:
         if get_length(value) < min_length:
             if warning:
-                raise UserWarning(f"{info.field_name} has less than {min_length} elements")
+                warnings.warn(f"{info.field_name} has less than {min_length} elements", UserWarning)
             else:
                 raise ValueError(f"{info.field_name} must contain at least {min_length} elements")
     return value
@@ -131,7 +131,7 @@ def validate_spiketrain(value, info, allowed_types=(list, neo.SpikeTrain, pq.Qua
     validate_type_length(value, info, allowed_types, allow_none, min_length)
     if(check_sorted):
         if value is not None and not is_sorted(value):
-            raise UserWarning(f"{info.field_name} is not sorted")
+            warnings.warn(f"{info.field_name} is not sorted", UserWarning)
     if(isinstance(value, neo.SpikeTrain)):
         if value.t_start is not None and value.t_stop is not None:
             if value.t_start > value.t_stop:
@@ -176,9 +176,13 @@ def validate_array(value, info, allowed_types=(list, np.ndarray) , allow_none=Fa
 def validate_binned_spiketrain(value, info, allowed_types=(elephant.conversion.BinnedSpikeTrain,), allow_none=False, min_length=1):
     validate_type_length(value, info, allowed_types, allow_none, min_length, warning=True)
     if value is not None and isinstance(value, elephant.conversion.BinnedSpikeTrain):
-        for row in value:
-            if len(row) == 0:
-                raise UserWarning(f"Row in {info.field_name} is empty")
+        spmat = value.sparse_matrix
+
+        # Check for empty spike trains
+        n_spikes_per_row = spmat.sum(axis=1)
+        if n_spikes_per_row.min() == 0:
+            warnings.warn(
+                f'Detected empty spike trains (rows) in the {info.field_name}.', UserWarning)
     return value
 
 def validate_dict_enum_types(value : dict[Enum, Any], info, typeDictionary: dict[Enum, type]):
@@ -200,12 +204,12 @@ def model_validate_spiketrains_same_t_start_stop(spiketrain, t_start, t_stop, na
             else:
                 if t_start is None and item.t_start != t_start:
                     if warning:
-                        raise UserWarning(f"{name} has different t_start values among its elements")
+                        warnings.warn(f"{name} has different t_start values among its elements", UserWarning)
                     else:
                         raise ValueError(f"{name} has different t_start values among its elements")
                 if t_stop is None and item.t_stop != t_stop:
                     if warning:
-                        raise UserWarning(f"{name} has different t_stop values among its elements")
+                        warnings.warn(f"{name} has different t_stop values among its elements", UserWarning)
                     else:
                         raise ValueError(f"{name} has different t_stop values among its elements")
     else:
@@ -221,7 +225,7 @@ def model_validate_spiketrains_sam_t_start_stop(spiketrain_i, spiketrain_j):
 def model_validate_time_intervals_with_nan(time_intervals , with_nan, name: str = "time_intervals"):
     if get_length(time_intervals)<2:
         if(with_nan):
-            raise UserWarning(f"{name} has less than two entries so a np.Nan will be generated")
+            warnings.warn(f"{name} has less than two entries so a np.Nan will be generated", UserWarning)
         else:
             raise ValueError(f"{name} has less than two entries")
         

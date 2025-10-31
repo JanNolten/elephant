@@ -17,6 +17,7 @@ from enum import Enum
 
 import elephant.schemas.field_validator as fv
 import elephant.schemas.field_serializer as fs
+import warnings
 
 
 class PydanticJointJWindowAnalysis(BaseModel):
@@ -73,8 +74,8 @@ class PydanticJointJWindowAnalysis(BaseModel):
         winstep_bintime = self.win_step.magnitude // self.bin_size.magnitude
 
         if winsize_bintime * self.bin_size.magnitude != self.win_size.magnitude:
-            raise UserWarning(f"The ratio between the win_size and the bin_size is not an integer")
+            warnings.warn(f"The ratio between the win_size and the bin_size is not an integer", UserWarning)
 
         if winstep_bintime * self.bin_size.magnitude != self.win_step.magnitude:
-            raise UserWarning(f"The ratio between the win_step and the bin_size is not an integer")
+            warnings.warn(f"The ratio between the win_step and the bin_size is not an integer", UserWarning)
         return self

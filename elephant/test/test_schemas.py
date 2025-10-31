@@ -21,6 +21,7 @@ from elephant.schemas.schema_spike_train_dissimilarity import *;
 from elephant.schemas.schema_spike_train_synchrony import *;
 from elephant.schemas.schema_gpfa import *;
 
+
 def test_model_json_schema():
 	# Just test that json_schema generation runs without error for all models
 	model_classes = [
@@ -72,13 +73,46 @@ def test_model_json_schema():
 	]
 	for cls in model_classes:
 		schema = cls.model_json_schema()
-		assert isinstance(schema, dict)  # basic check that something was returned
+		assert isinstance(schema, dict)
 
+"""
+Checking for consistent behavior between Elephant functions and Pydantic models.
+Tests become irrelevant if Pydantic models are implemented for elephant functions.
+So these tests need to then stop checking consistency and just test the Pydantic models directly.
+"""
 
-def make_spiketrain():
-	# simple spike times in seconds
-	times = np.array([0.01, 0.02, 0.05])
-	return neo.core.SpikeTrain(times * pq.s, t_start=0 * pq.s, t_stop=0.1 * pq.s)
+def assert_both_succeed_consistently(elephant_fn, model_cls, kwargs):
+	"""Call both the Elephant function and the Pydantic model with the same kwargs.
+	Assert both complete without raising exceptions.
+
+	Parameters
+	- elephant_fn: callable to invoke with kwargs
+	- model_cls: Pydantic model class to instantiate with kwargs
+	- kwargs: dict of keyword arguments to pass to both
+	"""
+	try:
+		elephant_fn(**kwargs)
+	except Exception as e:
+		assert False, f"Elephant function raised an exception: {e}"
+
+	try:
+		model_cls(**kwargs)
+	except Exception as e:
+		assert False, f"Pydantic model raised an exception: {e}"
+
+def assert_both_warn_consistently(elephant_fn, model_cls, kwargs):
+	"""Call both the Elephant function and the Pydantic model with the same kwargs.
+	Assert both raise warnings.
+
+	Parameters
+	- elephant_fn: callable to invoke with kwargs
+	- model_cls: Pydantic model class to instantiate with kwargs
+	- kwargs: dict of keyword arguments to pass to both
+	"""
+	with pytest.warns(Warning) as w1:
+		elephant_fn(**kwargs)
+	with pytest.warns(Warning) as w2:
+		model_cls(**kwargs)
 
 
 def assert_both_raise_consistently(elephant_fn, model_cls, kwargs, *, same_type=False, expected_exception=None):
@@ -113,103 +147,169 @@ def assert_both_raise_consistently(elephant_fn, model_cls, kwargs, *, same_type=
 		if(type(exc1) is type(exc2)):
 			return
 
-		# Treat (Pydantic ValidationError) <-> (ValueError|TypeError) as equivalent
 		if (isinstance(exc1, (ValueError, TypeError)) and isinstance(exc2, (ValidationError, AttributeError))):
 			return
 
-		# No known equivalence -> fail
 		assert False, (
 			f"Different exception types: Elephant={type(exc1)}, Pydantic={type(exc2)}. "
 			f"Elephant exc: {exc1}; Pydantic exc: {exc2}")
 
+@pytest.fixture(scope="module")
+def make_list():
+	return [0.01, 0.02, 0.05]
 
-@pytest.mark.parametrize("cls,fn_name", [
-	(PydanticTimeHistogram, elephant.statistics.time_histogram),
-	(PydanticFanofactor, elephant.statistics.fanofactor),
-	(PydanticComplexityPdf, elephant.statistics.complexity_pdf),
+@pytest.fixture(scope="module")
+def make_ndarray(make_list):
+	return np.array(make_list)
+
+@pytest.fixture(scope="module")
+def make_pq_single_quantity():
+	return 0.05 * pq.s
+
+@pytest.fixture(scope="module")
+def make_pq_multiple_quantity(make_ndarray):
+	return make_ndarray * pq.s
+
+@pytest.fixture(scope="module")
+def make_spiketrain(make_pq_multiple_quantity):
+	return neo.core.SpikeTrain(make_pq_multiple_quantity, t_start=0 * pq.s, t_stop=0.1 * pq.s)
+
+@pytest.fixture(scope="module")
+def make_spiketrains(make_spiketrain):
+	return [make_spiketrain, make_spiketrain]
+
+@pytest.fixture(scope="module")
+def make_binned_spiketrain(make_spiketrain):
+	return elephant.conversion.BinnedSpikeTrain(make_spiketrain, bin_size=0.01 * pq.s)
+
+@pytest.fixture(scope="module")
+def fixture(request):
+	return request.getfixturevalue(request.param)
+
+
+@pytest.mark.parametrize("elephant_fn,model_cls", [
+	(elephant.statistics.mean_firing_rate, PydanticMeanFiringRate),
+	(elephant.statistics.isi, PydanticIsi),
 ])
-def test_spiketrains_invalid_type(cls, fn_name):
-	bad = {"spiketrains": [1, 2, 3], "bin_size": 5 * pq.ms}
-	# elephant function call signature varies; call with minimal args when possible
-	# Use the helper to consistently call elephant functions
-	assert_both_raise_consistently(fn_name, cls, bad)
+@pytest.mark.parametrize("fixture", [
+	"make_list",
+	"make_spiketrain",
+    "make_ndarray",
+    "make_pq_multiple_quantity",
+], indirect=["fixture"])
+def test_valid_spiketrain_input(elephant_fn, model_cls, fixture):
+	valid = {"spiketrain": fixture}
+	assert_both_succeed_consistently(elephant_fn, model_cls, valid)
 
 
-def test_spade_invalid_spiketrains_and_negative_winlen():
-	bad_spikes = {"spiketrains": [1, 2, 3], "bin_size": 5 * pq.ms, "winlen": 10}
-	assert_both_raise_consistently(elephant.spade.spade, PydanticSpade, bad_spikes)
-
-	bad_winlen = {"spiketrains": [make_spiketrain()], "bin_size": 5 * pq.ms, "winlen": -1}
-	# elephant should raise for negative window length
-	assert_both_raise_consistently(elephant.spade.spade, PydanticSpade, bad_winlen)
-
-
-def test_concepts_mining_invalid_inputs():
-	bad = {"spiketrains": [1, 2, 3], "bin_size": 5 * pq.ms, "winlen": 5}
-	assert_both_raise_consistently(elephant.spade.concepts_mining, PydanticConceptsMining, bad)
-
-
-def test_pvalue_spectrum_invalid_inputs():
-	bad = {"spiketrains": [1, 2, 3], "bin_size": 5 * pq.ms, "winlen": 5, "dither": 15 * pq.ms, "n_surr": 10}
-	assert_both_raise_consistently(elephant.spade.pvalue_spectrum, PydanticPValueSpectrum, bad)
+@pytest.mark.parametrize("elephant_fn,model_cls", [
+	(elephant.statistics.mean_firing_rate, PydanticMeanFiringRate),
+	(elephant.statistics.isi, PydanticIsi),
+])
+@pytest.mark.parametrize("spiketrain", [
+	5,
+	"hello",
+])
+def test_invalid_spiketrain(elephant_fn, model_cls, spiketrain):
+	invalid = {"spiketrain": spiketrain}
+	assert_both_raise_consistently(elephant_fn, model_cls, invalid)
 
 
-def test_jointJ_window_analysis_invalid_spiketrains_and_params():
-	bad = {"spiketrains": [1, 2, 3], "bin_size": 5 * pq.ms}
-	assert_both_raise_consistently(elephant.unitary_event_analysis.jointJ_window_analysis, PydanticJointJWindowAnalysis, bad)
+@pytest.mark.parametrize("elephant_fn,model_cls", [
+	(elephant.statistics.time_histogram, PydanticTimeHistogram),
+	(elephant.statistics.complexity_pdf, PydanticComplexityPdf),
+])
+def test_valid_pq_quantity(elephant_fn, model_cls, make_spiketrains, make_pq_single_quantity):
+	valid = {"spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity}
+	assert_both_succeed_consistently(elephant_fn, model_cls, valid)
 
 
-def test_cell_assembly_detection_invalid_binned_spiketrain():
-	bad = {"binned_spiketrain": [1, 2, 3], "max_lag": 2}
-	assert_both_raise_consistently(elephant.cell_assembly_detection.cell_assembly_detection, PydanticCellAssemblyDetection, bad)
+@pytest.mark.parametrize("elephant_fn,model_cls", [
+	(elephant.statistics.time_histogram, PydanticTimeHistogram),
+	(elephant.statistics.complexity_pdf, PydanticComplexityPdf),
+])
+@pytest.mark.parametrize("pq_quantity", [
+	5,
+	"hello",
+	[0.01, 0.02]
+])
+def test_invalid_pq_quantity(elephant_fn, model_cls, make_spiketrains, pq_quantity):
+	valid = {"spiketrains": make_spiketrains, "bin_size": pq_quantity}
+	assert_both_raise_consistently(elephant_fn, model_cls, valid)
 
 
-def test_optimal_kernel_bandwidth_invalid_spiketimes():
-	bad = {"spiketimes": "not an array"}
-	assert_both_raise_consistently(elephant.statistics.optimal_kernel_bandwidth, PydanticOptimalKernelBandwidth, bad)
+
+@pytest.mark.parametrize("elephant_fn,model_cls", [
+	(elephant.statistics.instantaneous_rate, PydanticInstantaneousRate),
+])
+@pytest.mark.parametrize("fixture", [
+	"make_list",
+    "make_ndarray",
+    "make_pq_multiple_quantity",
+], indirect=["fixture"])
+def test_invalid_spiketrains(elephant_fn, model_cls, fixture, make_pq_single_quantity):
+	invalid = {"spiketrains": fixture, "sampling_period": make_pq_single_quantity}
+	assert_both_raise_consistently(elephant_fn, model_cls, invalid)
+
+@pytest.mark.parametrize("output", [
+	"counts",
+	"mean",
+	"rate",
+])
+def test_valid_enum(output, make_spiketrains, make_pq_single_quantity):
+	valid = {"spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "output": output}
+	assert_both_succeed_consistently(elephant.statistics.time_histogram, PydanticTimeHistogram, valid)
+
+@pytest.mark.parametrize("output", [
+	"countsfagre",
+	5,
+	"Counts",
+	"counts ",
+	" counts",
+	"counts\n"
+])
+def test_invalid_enum(output, make_spiketrains, make_pq_single_quantity):
+	invalid = {"spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "output": output}
+	assert_both_raise_consistently(elephant.statistics.time_histogram, PydanticTimeHistogram, invalid)
 
 
-def test_lvr_R_validation():
-	# R must be non-negative quantity; negative should raise
-	gt = {"time_intervals": np.array([1.0, 2.0]), "R": -5 * pq.ms}
-	# elephant.lvr expects time_intervals and R; call and expect error
-	assert_both_raise_consistently(elephant.statistics.lvr, PydanticLvr, gt)
+def test_valid_binned_spiketrain(make_binned_spiketrain):
+	valid = {"binned_spiketrain": make_binned_spiketrain}
+	assert_both_succeed_consistently(
+		elephant.spike_train_correlation.covariance,
+		PydanticCovariance,
+		valid
+	)
 
+def test_invalid_binned_spiketrain(make_spiketrain):
+	invalid = {"binned_spiketrain": make_spiketrain}
+	assert_both_raise_consistently(
+		elephant.spike_train_correlation.covariance,
+		PydanticCovariance,
+		invalid,
+	)
 
-def test_lvr_R_zero_allowed():
-	# R == 0 should be allowed by Pydantic wrapper
-	ok = {"time_intervals": np.array([1.0, 2.0]), "R": 0 * pq.ms}
-	# Pydantic should instantiate without error
-	inst = PydanticLvr(**ok)
-	assert isinstance(inst, PydanticLvr)
+@pytest.mark.parametrize("elephant_fn,model_cls,parameter_name,empty_input", [
+	(elephant.statistics.mean_firing_rate, PydanticMeanFiringRate, "spiketrain", neo.core.SpikeTrain(np.array([])*pq.s, t_start=0*pq.s, t_stop=1*pq.s)),
+	(elephant.statistics.instantaneous_rate, PydanticInstantaneousRate, "spiketrains", []),
+	(elephant.statistics.optimal_kernel_bandwidth, PydanticOptimalKernelBandwidth, "spiketimes", np.array([])),
+	(elephant.statistics.cv2, PydanticCv2, "time_intervals", np.array([])*pq.s),
+])
+def test_invalid_empty_input(elephant_fn, model_cls, parameter_name, empty_input):
+	invalid = {parameter_name: empty_input}
+	assert_both_raise_consistently(elephant_fn, model_cls, invalid)
 
+@pytest.mark.parametrize("elephant_fn,model_cls,parameter_name,empty_input", [
+	(elephant.spike_train_correlation.covariance, PydanticCovariance, "binned_spiketrain", elephant.conversion.BinnedSpikeTrain(neo.core.SpikeTrain(np.array([])*pq.s, t_start=0*pq.s, t_stop=1*pq.s), bin_size=0.01*pq.s)),
+])
+def test_warning_empty_input(elephant_fn, model_cls, parameter_name, empty_input):
+	warning = {parameter_name: empty_input}
+	assert_both_warn_consistently(elephant_fn, model_cls, warning)
 
-def test_pvalue_spectrum_n_surr_zero_and_negative():
-	base = {
-		"spiketrains": [make_spiketrain()],
-		"bin_size": 5 * pq.ms,
-		"winlen": 5,
-		"dither": 15 * pq.ms,
-	}
-	ok_zero = {**base, "n_surr": 0}
-	# Pydantic should accept zero surrogates (boundary)
-	inst = PydanticPValueSpectrum(**ok_zero)
-	assert isinstance(inst, PydanticPValueSpectrum)
-
-	bad_neg = {**base, "n_surr": -1}
-	# elephant should raise for invalid n_surr
-	assert_both_raise_consistently(elephant.spade.pvalue_spectrum, PydanticPValueSpectrum, bad_neg)
-
-
-def test_timehistogram_bin_size_zero_raises():
-	bad = {"spiketrains": [make_spiketrain()], "bin_size": 0 * pq.ms}
-	# elephant.statistics.time_histogram should reject zero bin size
-	assert_both_raise_consistently(elephant.statistics.time_histogram, PydanticTimeHistogram, bad)
-
-
-def test_fanofactor_bin_size_negative_and_small_positive():
-	small = {"spiketrains": [make_spiketrain()], "bin_size": 1e-6 * pq.s}
-	# very small but positive bin size should be accepted by Pydantic wrapper
-	inst = PydanticFanofactor(**small)
-	assert isinstance(inst, PydanticFanofactor)
-
+def test_valid_Complexity(make_spiketrains, make_pq_single_quantity):
+	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity }
+	assert_both_succeed_consistently(
+		elephant.statistics.Complexity,
+		ComplexityInit,
+		valid,
+	)

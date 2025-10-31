@@ -20,6 +20,8 @@ from os import PathLike
 import elephant.schemas.field_validator as fv
 import elephant.schemas.field_serializer as fs
 
+import warnings
+
 
 class PydanticSynchronousEventsIntersection(BaseModel):
     """
@@ -195,9 +197,9 @@ class ASSETJointProbabilityMatrix(BaseModel):
     
     @field_validator("cuda_threads")
     @classmethod
-    def validate_cudo_threads(cls, v):
+    def validate_cuda_threads(cls, v):
         if v % 32 != 0:
-            raise UserWarning("cuda_threads should be a multiple of 32")
+            warnings.warn("cuda_threads should be a multiple of 32", UserWarning)
         return v
 
 class ASSETMaskMatrices(BaseModel):

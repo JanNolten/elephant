@@ -22,6 +22,8 @@ from elephant.kernels import Kernel
 import elephant.schemas.field_validator as fv
 import elephant.schemas.field_serializer as fs
 
+import warnings
+
 class PydanticMeanFiringRate(BaseModel):
     """
     PyDantic Class to wrap the elephant.statistics.mean_firing_rate function
@@ -98,7 +100,7 @@ class PydanticInstantaneousRate(BaseModel):
     @model_validator(mode="after")
     def validate_model(self) -> Self:             
         if(isinstance(self.kernel, Kernel) and self.cutoff < self.kernel.min_cutoff):
-            raise UserWarning(f"cutoff {self.cutoff} is smaller than the minimum cutoff {self.kernel.min_cutoff} of the kernel")
+            warnings.warn(f"cutoff {self.cutoff} is smaller than the minimum cutoff {self.kernel.min_cutoff} of the kernel", UserWarning)
         fv.model_validate_spiketrains_same_t_start_stop(self.spiketrains, self.t_start, self.t_stop, warning=True)
         return self
 
@@ -123,7 +125,7 @@ class PydanticTimeHistogram(BaseModel):
     @field_validator("spiketrains")
     @classmethod
     def validate_spiketrains(cls, v, info):
-        return fv.validate_spiketrains(v, info, allowed_content_types=(neo.Spiketrain,))
+        return fv.validate_spiketrains(v, info, allowed_content_types=(neo.SpikeTrain,))
     
     @field_validator("bin_size")
     @classmethod
@@ -257,7 +259,7 @@ class PydanticLvr(BaseModel):
     def validate_R(cls, v, info):
         fv.validate_type(v, info, (pq.Quantity, int, float), allow_none=False)
         if(not isinstance(v, pq.Quantity)):
-            raise UserWarning("R does not have any units so milliseconds are assumed")
+            warnings.warn("R does not have any units so milliseconds are assumed", UserWarning)
         return v
     
     @model_validator(mode="after")
@@ -332,7 +334,7 @@ class ComplexityInit(BaseModel):
     def validate_sampling_rate(cls, v, info):
         fv.validate_quantity(v, info, allow_none=True)
         if v is None:
-            raise UserWarning("no sampling rate is supplied. This may lead to rounding errors when using the epoch to slice spike trains")
+            warnings.warn("no sampling rate is supplied. This may lead to rounding errors when using the epoch to slice spike trains", UserWarning)
         return v
 
     @model_validator(mode="after")
