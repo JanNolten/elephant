@@ -1,10 +1,7 @@
 import quantities as pq
-import numpy as np
 from typing import (
     Any,
-    List,
     Union,
-    Self,
     Optional
 )
 from pydantic import (
@@ -14,12 +11,11 @@ from pydantic import (
     model_validator,
     field_serializer
 )
-import neo
 from enum import Enum
-import elephant
 from elephant.schemas.class_builder import make_class_model
 import elephant.schemas.field_validator as fv
 import elephant.schemas.field_serializer as fs
+import sklearn
 
 
 class GPFAInit(BaseModel):
@@ -113,8 +109,53 @@ class PydanticGPFAScore(BaseModel):
     def validate_spiketrains(cls, v, info):
         return fv.validate_spiketrains_matrix(v, info)
 
+class PydanticGPFASetFitRequest(BaseModel):
+    """
+    Pydantic wrapper for `elephant.gpfa.gpfa.GPFA.set_fit_request`
+    """
 
-PydanticGPFAModel = make_class_model(
+    spiketrains: Optional[Union[bool, None, str]] = Field(
+        sklearn.utils.metadata_routing.UNCHANGED,
+        description=(
+            "Metadata routing for `spiketrains`"
+        ),
+    )
+
+
+class PydanticGPFASetScoreRequest(BaseModel):
+    """
+    Pydantic wrapper for `elephant.gpfa.gpfa.GPFA.set_score_request`
+    """
+
+    spiketrains: Optional[Union[bool, None, str]] = Field(
+        sklearn.utils.metadata_routing.UNCHANGED,
+        description=(
+            "Metadata routing for `spiketrains`"
+        ),
+    )
+
+
+class PydanticGPFASetTransformRequest(BaseModel):
+    """
+    Pydantic wrapper for `elephant.gpfa.gpfa.GPFA.set_transform_request`
+    """
+
+    returned_data: Optional[Union[bool, None, str]] = Field(
+        sklearn.utils.metadata_routing.UNCHANGED,
+        description=(
+            "Metadata routing for `returned_data`"
+        ),
+    )
+
+    spiketrains: Optional[Union[bool, None, str]] = Field(
+        sklearn.utils.metadata_routing.UNCHANGED,
+        description=(
+            "Metadata routing for `spiketrains`"
+        ),
+    )
+
+
+PydanticGPFA = make_class_model(
     "GPFA",
     {
         "constructor": GPFAInit,
@@ -122,5 +163,8 @@ PydanticGPFAModel = make_class_model(
         "transform": PydanticGPFATransform,
         "fit_transform": PydanticGPFAFitTransform,
         "score": PydanticGPFAScore,
+        "set_fit_request": PydanticGPFASetFitRequest,
+        "set_score_request": PydanticGPFASetScoreRequest,
+        "set_transform_request": PydanticGPFASetTransformRequest,
     },
 )

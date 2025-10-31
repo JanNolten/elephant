@@ -19,6 +19,7 @@ from elephant.schemas.schema_statistics import *;
 from elephant.schemas.schema_spike_train_correlation import *;
 from elephant.schemas.schema_spike_train_dissimilarity import *;
 from elephant.schemas.schema_spike_train_synchrony import *;
+from elephant.schemas.schema_gpfa import *;
 
 def test_model_json_schema():
 	# Just test that json_schema generation runs without error for all models
@@ -66,7 +67,8 @@ def test_model_json_schema():
 		PydanticTotalSpikingProbability,
 		PydanticASSET,
 		PydanticSynchrotool,
-		PydanticComplexity
+		PydanticComplexity,
+		PydanticGPFA
 	]
 	for cls in model_classes:
 		schema = cls.model_json_schema()
