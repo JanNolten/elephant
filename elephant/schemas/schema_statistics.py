@@ -29,7 +29,7 @@ class PydanticMeanFiringRate(BaseModel):
     PyDantic Class to wrap the elephant.statistics.mean_firing_rate function
     with additional type checking and json_schema by PyDantic.
     """
-    spiketrain: Any = Field(..., description="SpikeTrain Object")
+    spiketrain: Any = Field(None, description="SpikeTrain Object")
     t_start: Optional[Any] = Field(None, description="Start time")
     t_stop: Optional[Any] = Field(None, description="Stop time")
     axis: Optional[int] = Field(None, description="Axis of calculation")
@@ -37,7 +37,7 @@ class PydanticMeanFiringRate(BaseModel):
     @field_validator("spiketrain")
     @classmethod
     def validate_spiketrain(cls, v, info):
-        return fv.validate_spiketrain(v, info)
+        return fv.validate_spiketrain(v, info, allow_none=True)
     
     @field_validator("t_start", "t_stop")
     @classmethod

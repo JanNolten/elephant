@@ -107,7 +107,7 @@ __all__ = [
 
 cv = scipy.stats.variation
 
-
+@validate_with(PydanticIsi)
 def isi(spiketrain, axis=-1):
     """
     Return an array containing the inter-spike intervals of the spike train.

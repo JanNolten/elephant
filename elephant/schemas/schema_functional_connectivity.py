@@ -9,7 +9,7 @@ from pydantic import (
 
 import elephant.schemas.field_validator as fv
 
-class PydanticTotalSpikingProbability(BaseModel):
+class PydanticTotalSpikingProbabilityEdges(BaseModel):
     """
     PyDantic Class to wrap the elephant.functional_connectivity.total_spiking_probability function
     with additional type checking and json_schema by PyDantic.

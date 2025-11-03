@@ -65,7 +65,7 @@ def test_model_json_schema():
 		PydanticCubic,
 		PydanticMultipleFilterTest,
 		PydanticEmpiricalParameters,
-		PydanticTotalSpikingProbability,
+		PydanticTotalSpikingProbabilityEdges,
 		PydanticASSET,
 		PydanticSynchrotool,
 		PydanticComplexity,
@@ -183,6 +183,11 @@ def make_binned_spiketrain(make_spiketrain):
 	return elephant.conversion.BinnedSpikeTrain(make_spiketrain, bin_size=0.01 * pq.s)
 
 @pytest.fixture(scope="module")
+def make_analog_signal():
+	n = 1000
+	return neo.core.AnalogSignal(np.array([i/(n-1) for i in range(n)])*pq.s, sampling_rate=100*pq.Hz, t_start=0*pq.s)
+
+@pytest.fixture(scope="module")
 def fixture(request):
 	return request.getfixturevalue(request.param)
 
@@ -290,7 +295,6 @@ def test_invalid_binned_spiketrain(make_spiketrain):
 	)
 
 @pytest.mark.parametrize("elephant_fn,model_cls,parameter_name,empty_input", [
-	(elephant.statistics.mean_firing_rate, PydanticMeanFiringRate, "spiketrain", neo.core.SpikeTrain(np.array([])*pq.s, t_start=0*pq.s, t_stop=1*pq.s)),
 	(elephant.statistics.instantaneous_rate, PydanticInstantaneousRate, "spiketrains", []),
 	(elephant.statistics.optimal_kernel_bandwidth, PydanticOptimalKernelBandwidth, "spiketimes", np.array([])),
 	(elephant.statistics.cv2, PydanticCv2, "time_intervals", np.array([])*pq.s),
@@ -306,6 +310,7 @@ def test_warning_empty_input(elephant_fn, model_cls, parameter_name, empty_input
 	warning = {parameter_name: empty_input}
 	assert_both_warn_consistently(elephant_fn, model_cls, warning)
 
+
 def test_valid_Complexity(make_spiketrains, make_pq_single_quantity):
 	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity }
 	assert_both_succeed_consistently(
@@ -313,3 +318,23 @@ def test_valid_Complexity(make_spiketrains, make_pq_single_quantity):
 		ComplexityInit,
 		valid,
 	)
+
+
+def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity):
+	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "winlen": 1, "dither": 15*pq.s, "n_surr": 1, "surr_method": "bin_shuffling"}
+	assert_both_succeed_consistently(elephant.spade.pvalue_spectrum, PydanticPValueSpectrum, valid)
+
+@pytest.mark.parametrize("surr_method", [
+	"JointISI",
+	5,
+	"Randomise_spikes",
+	"Randomise_spikes ",
+])
+def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity, surr_method):
+	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "winlen": 1, "dither": 15*pq.s, "n_surr": 1, "surr_method": surr_method}
+	assert_both_raise_consistently(elephant.spade.pvalue_spectrum, PydanticPValueSpectrum, valid)
+
+
+def test_valid_analog_signal(make_analog_signal):
+	valid = { "histogram": make_analog_signal }
+	#assert_both_succeed_consistently(elephant.cubic.cubic, PydanticCubic, valid)

@@ -18,6 +18,8 @@ import scipy.sparse as sp
 import elephant.schemas.field_validator as fv
 import elephant.schemas.field_serializer as fs
 
+from elephant.spike_train_surrogates import SURR_METHODS
+
 class StatCorrOptions(str, Enum):
     bonferroni = "bonferroni"
     sidak = "sidak"
@@ -30,18 +32,6 @@ class StatCorrOptions(str, Enum):
     fdr_tsbh = "fdr_tsbh"
     fdr_tsbky = "fdr_tsbky"
     no = "no"
-
-
-#Should get from elephant.spike_train_surrogates.surrogates
-class SurrogateMethodOptions(str, Enum):
-    dither_spikes = "dither_spikes"
-    dither_spike_train = "dither_spike_train"
-    jitter_spikes = "jitter_spikes"
-    randomise_spikes = "randomise_spikes"
-    shuffle_isis = "shuffle_isis"
-    joint_isi_dithering = "joint_isi_dithering"
-    trial_shifting = "trial_shifting"
-    bin_shuffling = "bin_shuffling"
 
 class PydanticSpade(BaseModel):
     """
@@ -87,8 +77,8 @@ class PydanticSpade(BaseModel):
         StatCorrOptions.fdr_bh,
         description="Multiple testing correction method"
     )
-    surr_method: Optional[SurrogateMethodOptions] = Field(
-        SurrogateMethodOptions.dither_spikes,
+    surr_method: Optional[str] = Field(
+        SURR_METHODS[0],
         description="Surrogate generation method"
     )
     psr_param: Optional[Union[list[int], tuple[int,]]] = Field(
@@ -132,6 +122,11 @@ class PydanticSpade(BaseModel):
             }
             fv.validate_dict_enum_types(value, info, expected_types)
         return value
+    
+    @field_validator("surr_method")
+    @classmethod
+    def validate_surr_method(cls, value, info):
+        return fv.validate_key_in_tuple(value, info, SURR_METHODS)
 
 class PydanticConceptsMining(BaseModel):
     """
@@ -201,8 +196,8 @@ class PydanticPValueSpectrum(BaseModel):
         SpectrumOptionsLocal.hash,
         description="Pattern spectrum signature"
     )
-    surr_method: Optional[SurrogateMethodOptions] = Field(
-        SurrogateMethodOptions.dither_spikes,
+    surr_method: Optional[str] = Field(
+        SURR_METHODS[0],
         description="Surrogate generation method"
     )
     surr_kwargs: Optional[dict[str, Any]] = Field(
@@ -225,6 +220,10 @@ class PydanticPValueSpectrum(BaseModel):
     def validate_quantities(cls, value, info):
         return fv.validate_quantity(value, info)
     
+    @field_validator("surr_method")
+    @classmethod
+    def validate_surr_method(cls, value, info):
+        return fv.validate_key_in_tuple(value, info, SURR_METHODS)
 
 
 class PydanticTestSignatureSignificance(BaseModel):

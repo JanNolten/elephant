@@ -152,6 +152,9 @@ def validate_spiketrains_matrix(value, info, allowed_types = (elephant.trials.Tr
     return value
 
 def validate_time(value, info, allowed_types=(float, pq.Quantity) ,allow_none=True):
+    if(isinstance(value, np.ndarray) and value.size==1):
+        value = value.item()
+    
     validate_type(value, info, allowed_types, allow_none)
     return value
 
@@ -189,6 +192,12 @@ def validate_dict_enum_types(value : dict[Enum, Any], info, typeDictionary: dict
     for key, val in value.items():
         if not isinstance(val, typeDictionary[key]):
             raise TypeError(f"Value for key {key} in {info.field_name} must be of type {typeDictionary[key].__name__}, not {type(val).__name__}")
+    return value
+        
+def validate_key_in_tuple(value : str, info, t: tuple):
+    if value not in t:
+        raise ValueError(f"{info}:{value} is not in the options {t}")
+    return value
 
 
 # ---- Model validation helpers ----
