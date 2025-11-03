@@ -83,6 +83,9 @@ from elephant.conversion import BinnedSpikeTrain
 from elephant.utils import deprecated_alias, check_neo_consistency, \
     is_time_quantity, round_binning_errors
 
+from elephant.schemas.function_validator import validate_with
+from elephant.schemas.schema_statistics import *;
+
 # do not import unicode_literals
 # (quantities rescale does not work with unicodes)
 
@@ -155,7 +158,7 @@ def isi(spiketrain, axis=-1):
 
     return intervals
 
-
+@validate_with(PydanticMeanFiringRate)
 def mean_firing_rate(spiketrain, t_start=None, t_stop=None, axis=None):
     """
     Return the firing rate of the spike train.
