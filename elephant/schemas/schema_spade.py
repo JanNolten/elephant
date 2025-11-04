@@ -2,13 +2,15 @@ import quantities as pq
 from typing import (
     Any,
     Union,
-    Optional
+    Optional,
+    Self
 )
 from pydantic import (
     BaseModel,
     Field,
     field_validator,
-    field_serializer
+    field_serializer,
+    model_validator
 )
 import neo
 from enum import Enum
@@ -19,6 +21,7 @@ import elephant.schemas.field_validator as fv
 import elephant.schemas.field_serializer as fs
 
 from elephant.spike_train_surrogates import SURR_METHODS
+from elephant.schemas.schema_spike_train_surrogates import surrStrToModel
 
 class StatCorrOptions(str, Enum):
     bonferroni = "bonferroni"
@@ -78,7 +81,7 @@ class PydanticSpade(BaseModel, extra='allow'):
         description="Multiple testing correction method"
     )
     surr_method: Optional[str] = Field(
-        SURR_METHODS[0],
+        "dither_spikes",
         description="Surrogate generation method"
     )
     psr_param: Optional[Union[list[int], tuple[int,]]] = Field(
@@ -123,6 +126,12 @@ class PydanticSpade(BaseModel, extra='allow'):
     @classmethod
     def validate_surr_method(cls, value, info):
         return fv.validate_key_in_tuple(value, info, SURR_METHODS)
+    
+    @model_validator(mode="after")
+    def validate_model(self) -> Self:             
+        extras = getattr(self, "__pydantic_extra__", {})
+        surrStrToModel[self.method](**extras)
+        return self
 
 class PydanticConceptsMining(BaseModel):
     """
@@ -193,7 +202,7 @@ class PydanticPValueSpectrum(BaseModel, extra='allow'):
         description="Pattern spectrum signature"
     )
     surr_method: Optional[str] = Field(
-        SURR_METHODS[0],
+        "dither_spikes",
         description="Surrogate generation method"
     )
     
@@ -216,6 +225,12 @@ class PydanticPValueSpectrum(BaseModel, extra='allow'):
     @classmethod
     def validate_surr_method(cls, value, info):
         return fv.validate_key_in_tuple(value, info, SURR_METHODS)
+    
+    @model_validator(mode="after")
+    def validate_model(self) -> Self:             
+        extras = getattr(self, "__pydantic_extra__", {})
+        surrStrToModel[self.method](**extras)
+        return self
 
 
 class PydanticTestSignatureSignificance(BaseModel):

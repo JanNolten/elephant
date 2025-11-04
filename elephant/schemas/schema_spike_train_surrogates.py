@@ -30,7 +30,7 @@ class PydanticSurrogates(BaseModel, extra='allow'):
     """
     spiketrain: Any = Field(..., description="Spiketrain Object(s)")
     n_surrogates: Optional[int] = Field(1, gt=0, description="Number of surrogates")
-    method: Optional[str] = Field(SURR_METHODS[0], description="method to use generate surrogate spike trains")
+    method: Optional[str] = Field("dither_spike_train", description="method to use generate surrogate spike trains")
     dt: Optional[Any] = Field(None, description="size of shift/window")
 
     @field_validator("spiketrain")
@@ -56,6 +56,8 @@ class PydanticSurrogates(BaseModel, extra='allow'):
             raise ValueError("spiketrain is only allowed to be a list when the method is trial_shifting")
         if self.dt is None and self.method is not "randomise_spikes" and self.method is not "shuffle_isis":
             raise ValueError("dt cannot be None if the method is not \"randomise_spikes\" nor \"shuffle_isis\"")
+        extras = getattr(self, "__pydantic_extra__", {})
+        surrStrToModel[self.method](**extras)
         return self
     
 
@@ -256,3 +258,16 @@ class PydanticTrialShifting(BaseModel):
     @classmethod
     def validate_quantity(cls, v, info):
         return fv.validate_quantity(v, info)
+    
+surrStrToModel = {
+    'dither_spike_train': PydanticDitherSpikeTrain,
+    'dither_spikes': PydanticDitherSpikes, 
+    'jitter_spikes': PydanticJitterSpikes,          
+    'randomise_spikes': PydanticRandomiseSpikes, 
+    'shuffle_isis': PydanticShuffleIsis, 
+    'joint_isi_dithering': PydanticJointISI,
+    'dither_spikes_with_refractory_period': PydanticDitherSpikes, 
+    'trial_shifting': PydanticTrialShifting,
+    'bin_shuffling': PydanticBinShuffling, 
+    'isi_dithering': PydanticJointISI
+}
