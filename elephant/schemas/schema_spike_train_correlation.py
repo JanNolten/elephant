@@ -106,7 +106,7 @@ class PydanticSpikeTimeTilingCoefficient(BaseModel):
     dt: Any = Field(default_factory=lambda: 0.005 * pq.s, description="Synchronicity window")
 
     @field_serializer("dt", mode='plain')
-    def serialize_quantity(self, value: pq.Quantity) -> dict:
+    def serialize_quantity(self, value: pq.Quantity):
         return fs.serialize_quantity(value)
 
     @field_validator("spiketrain_i", "spiketrain_j")

@@ -33,7 +33,7 @@ class StatCorrOptions(str, Enum):
     fdr_tsbky = "fdr_tsbky"
     no = "no"
 
-class PydanticSpade(BaseModel):
+class PydanticSpade(BaseModel, extra='allow'):
     """
     PyDantic Class to wrap the `elephant.spade.spade` function
     with additional type checking and JSON schema generation.
@@ -90,10 +90,6 @@ class PydanticSpade(BaseModel):
     output_format: Optional[OutputFormatOptions] = Field(
         OutputFormatOptions.patterns,
         description="Output format"
-    )
-    surr_kwargs: Optional[dict[str, Any]] = Field(
-        None,
-        description="Keyword arguments for surrogate methods"
     )
 
     @field_serializer("dither", mode='plain')
@@ -170,7 +166,7 @@ class PydanticConceptsMining(BaseModel):
         return fv.validate_quantity(value, info)
 
 
-class PydanticPValueSpectrum(BaseModel):
+class PydanticPValueSpectrum(BaseModel, extra='allow'):
     """
     Pydantic wrapper for elephant.spade.pvalue_spectrum
 
@@ -199,10 +195,6 @@ class PydanticPValueSpectrum(BaseModel):
     surr_method: Optional[str] = Field(
         SURR_METHODS[0],
         description="Surrogate generation method"
-    )
-    surr_kwargs: Optional[dict[str, Any]] = Field(
-        None,
-        description="Keyword arguments for surrogate methods"
     )
     
     @field_serializer("dither", mode='plain')

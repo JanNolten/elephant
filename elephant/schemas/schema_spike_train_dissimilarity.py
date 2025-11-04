@@ -34,7 +34,7 @@ class PydanticVictorPurpuraDistance(BaseModel):
     algorithm: Optional[AlgorithmOptions] = Field(AlgorithmOptions.fast, description="Which algorithm to calculate")
 
     @field_serializer("cost_factor", mode='plain')
-    def serialize_quantity(self, value: pq.Quantity) -> dict:
+    def serialize_quantity(self, value: pq.Quantity):
         return fs.serialize_quantity(value)
 
     @field_validator("spiketrains")
@@ -65,7 +65,7 @@ class PydanticVanRossumDistance(BaseModel):
     sort: bool = Field(True, description="Sort Spiketrains")
 
     @field_serializer("time_constant", mode='plain')
-    def serialize_quantity(self, value: pq.Quantity) -> dict:
+    def serialize_quantity(self, value: pq.Quantity):
         return fs.serialize_quantity(value)
 
     @field_validator("spiketrains")

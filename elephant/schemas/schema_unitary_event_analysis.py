@@ -43,7 +43,7 @@ class PydanticJointJWindowAnalysis(BaseModel):
     n_surrogates: Optional[int] = Field(100, ge=0, description="Number of surrogates used")
 
     @field_serializer("bin_size", "win_size", "win_step", mode='plain')
-    def serialize_quantity(self, value: pq.Quantity) -> dict:
+    def serialize_quantity(self, value: pq.Quantity):
         return fs.serialize_quantity(value)
     
     @field_validator("bin_size", "win_size", "win_step")

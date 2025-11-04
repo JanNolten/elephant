@@ -328,7 +328,7 @@ def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity):
 	"JointISI",
 	5,
 	"Randomise_spikes",
-	"Randomise_spikes ",
+	"randomise_spikes ",
 ])
 def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity, surr_method):
 	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "winlen": 1, "dither": 15*pq.s, "n_surr": 1, "surr_method": surr_method}

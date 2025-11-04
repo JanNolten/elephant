@@ -237,7 +237,7 @@ class ASSETProbabilityMatrixAnalytical(BaseModel):
     kernel_width: Optional[Any] = Field(default_factory=100 * pq.ms, description="Kernel width for rate estimation")
 
     @field_serializer("kernel_width", mode='plain')
-    def serialize_quantity(self, value: pq.Quantity) -> dict:
+    def serialize_quantity(self, value: pq.Quantity):
         return fs.serialize_quantity(value)
 
     @field_validator("imat")

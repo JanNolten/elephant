@@ -33,7 +33,7 @@ class PydanticSpikeContrast(BaseModel):
     return_trace: Optional[bool] = Field(False, description="Return history of spike-contrast synchrony")
 
     @field_serializer("min_bin", mode='plain')
-    def serialize_quantity(self, value: pq.Quantity) -> dict:
+    def serialize_quantity(self, value: pq.Quantity):
         return fs.serialize_quantity(value)
 
     @field_validator("spiketrains")
