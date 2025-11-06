@@ -164,40 +164,41 @@ def assert_both_raise_consistently(elephant_fn, model_cls, kwargs, *, same_type=
 			f"Different exception types: Elephant={type(exc1)}, Pydantic={type(exc2)}. "
 			f"Elephant exc: {exc1}; Pydantic exc: {exc2}")
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def make_list():
 	return [0.01, 0.02, 0.05]
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def make_ndarray(make_list):
 	return np.array(make_list)
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def make_pq_single_quantity():
 	return 0.05 * pq.s
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def make_pq_multiple_quantity(make_ndarray):
 	return make_ndarray * pq.s
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def make_spiketrain(make_pq_multiple_quantity):
 	return neo.core.SpikeTrain(make_pq_multiple_quantity, t_start=0 * pq.s, t_stop=0.1 * pq.s)
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def make_spiketrains(make_spiketrain):
 	return [make_spiketrain, make_spiketrain]
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def make_binned_spiketrain(make_spiketrain):
 	return elephant.conversion.BinnedSpikeTrain(make_spiketrain, bin_size=0.01 * pq.s)
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def make_analog_signal():
-	n = 1000
-	return neo.core.AnalogSignal(np.array([i/(n-1) for i in range(n)])*pq.s, sampling_rate=100*pq.Hz, t_start=0*pq.s)
+	n2 = 300
+	n0 = 100000 - n2
+	return neo.AnalogSignal(np.array([10] * n2 + [0] * n0).reshape(n0 + n2, 1) * pq.dimensionless, sampling_period=1 * pq.s)
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def fixture(request):
 	return request.getfixturevalue(request.param)
 
@@ -347,4 +348,14 @@ def test_invalid_dynamic_enum(make_spiketrains, make_pq_single_quantity, surr_me
 
 def test_valid_analog_signal(make_analog_signal):
 	valid = { "histogram": make_analog_signal }
-	#assert_both_succeed_consistently(elephant.cubic.cubic, PydanticCubic, valid)
+	assert_both_succeed_consistently(elephant.cubic.cubic, PydanticCubic, valid)
+
+
+@pytest.mark.parametrize("fixture", [
+	"make_list",
+    "make_ndarray",
+    "make_pq_multiple_quantity",
+], indirect=["fixture"])
+def test_invalid_analog_signal(fixture):
+	invalid = { "histogram": fixture}
+	assert_both_raise_consistently(elephant.cubic.cubic, PydanticCubic, invalid)
