@@ -20,6 +20,7 @@ from elephant.schemas.schema_spike_train_correlation import *;
 from elephant.schemas.schema_spike_train_dissimilarity import *;
 from elephant.schemas.schema_spike_train_synchrony import *;
 from elephant.schemas.schema_gpfa import *;
+from elephant.schemas.schema_spike_train_surrogates import *;
 
 
 def test_model_json_schema():
@@ -69,7 +70,16 @@ def test_model_json_schema():
 		PydanticASSET,
 		PydanticSynchrotool,
 		PydanticComplexity,
-		PydanticGPFA
+		PydanticGPFA,
+		PydanticSurrogates,
+		PydanticJointISI,
+		PydanticDitherSpikes,
+		PydanticRandomiseSpikes,
+		PydanticShuffleIsis,
+		PydanticDitherSpikeTrain,
+		PydanticJitterSpikes,
+		PydanticBinShuffling,
+		PydanticTrialShifting,
 	]
 	for cls in model_classes:
 		schema = cls.model_json_schema()
@@ -320,8 +330,8 @@ def test_valid_Complexity(make_spiketrains, make_pq_single_quantity):
 	)
 
 
-def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity):
-	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "winlen": 1, "dither": 15*pq.s, "n_surr": 1, "surr_method": "bin_shuffling"}
+def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity, make_spiketrain):
+	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "winlen": 1, "dither": 15*pq.s, "n_surr": 1, "surr_method": "bin_shuffling", "sliding": True}
 	assert_both_succeed_consistently(elephant.spade.pvalue_spectrum, PydanticPValueSpectrum, valid)
 
 @pytest.mark.parametrize("surr_method", [
@@ -330,7 +340,7 @@ def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity):
 	"Randomise_spikes",
 	"randomise_spikes ",
 ])
-def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity, surr_method):
+def test_invalid_dynamic_enum(make_spiketrains, make_pq_single_quantity, surr_method):
 	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "winlen": 1, "dither": 15*pq.s, "n_surr": 1, "surr_method": surr_method}
 	assert_both_raise_consistently(elephant.spade.pvalue_spectrum, PydanticPValueSpectrum, valid)
 

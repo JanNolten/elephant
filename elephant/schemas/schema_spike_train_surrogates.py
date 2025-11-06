@@ -21,6 +21,8 @@ import scipy.sparse as sp
 import elephant.schemas.field_validator as fv
 import elephant.schemas.field_serializer as fs
 
+import warnings
+
 from elephant.spike_train_surrogates import SURR_METHODS
 
 class PydanticSurrogates(BaseModel, extra='allow'):
@@ -56,8 +58,6 @@ class PydanticSurrogates(BaseModel, extra='allow'):
             raise ValueError("spiketrain is only allowed to be a list when the method is trial_shifting")
         if self.dt is None and self.method is not "randomise_spikes" and self.method is not "shuffle_isis":
             raise ValueError("dt cannot be None if the method is not \"randomise_spikes\" nor \"shuffle_isis\"")
-        extras = getattr(self, "__pydantic_extra__", {})
-        surrStrToModel[self.method](**extras)
         return self
     
 
@@ -234,7 +234,7 @@ class PydanticBinShuffling(BaseModel):
     @model_validator(mode="after")
     def validate_model(self) -> Self:             
         if self.sliding and not isinstance(self, elephant.conversion.BinnedSpikeTrain):
-            raise ValueError("sliding is only implemented for binned spike trains")
+            warnings.warn("sliding is only implemented for binned spike trains", UserWarning)
         return self
     
 
@@ -258,16 +258,3 @@ class PydanticTrialShifting(BaseModel):
     @classmethod
     def validate_quantity(cls, v, info):
         return fv.validate_quantity(v, info)
-    
-surrStrToModel = {
-    'dither_spike_train': PydanticDitherSpikeTrain,
-    'dither_spikes': PydanticDitherSpikes, 
-    'jitter_spikes': PydanticJitterSpikes,          
-    'randomise_spikes': PydanticRandomiseSpikes, 
-    'shuffle_isis': PydanticShuffleIsis, 
-    'joint_isi_dithering': PydanticJointISI,
-    'dither_spikes_with_refractory_period': PydanticDitherSpikes, 
-    'trial_shifting': PydanticTrialShifting,
-    'bin_shuffling': PydanticBinShuffling, 
-    'isi_dithering': PydanticJointISI
-}

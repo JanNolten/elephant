@@ -21,7 +21,6 @@ import elephant.schemas.field_validator as fv
 import elephant.schemas.field_serializer as fs
 
 from elephant.spike_train_surrogates import SURR_METHODS
-from elephant.schemas.schema_spike_train_surrogates import surrStrToModel
 
 class StatCorrOptions(str, Enum):
     bonferroni = "bonferroni"
@@ -126,12 +125,6 @@ class PydanticSpade(BaseModel, extra='allow'):
     @classmethod
     def validate_surr_method(cls, value, info):
         return fv.validate_key_in_tuple(value, info, SURR_METHODS)
-    
-    @model_validator(mode="after")
-    def validate_model(self) -> Self:             
-        extras = getattr(self, "__pydantic_extra__", {})
-        surrStrToModel[self.method](**extras)
-        return self
 
 class PydanticConceptsMining(BaseModel):
     """
@@ -225,12 +218,7 @@ class PydanticPValueSpectrum(BaseModel, extra='allow'):
     @classmethod
     def validate_surr_method(cls, value, info):
         return fv.validate_key_in_tuple(value, info, SURR_METHODS)
-    
-    @model_validator(mode="after")
-    def validate_model(self) -> Self:             
-        extras = getattr(self, "__pydantic_extra__", {})
-        surrStrToModel[self.method](**extras)
-        return self
+
 
 
 class PydanticTestSignatureSignificance(BaseModel):
