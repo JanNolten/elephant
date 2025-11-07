@@ -13,7 +13,7 @@ from pydantic import (
 import neo
 from enum import Enum
 from elephant.schemas.class_builder import make_class_model
-from elephant.schemas.schema_statistics import ComplexityInit
+from elephant.schemas.schema_statistics import PydanticComplexityInit
 
 import elephant.schemas.field_validator as fv
 import elephant.schemas.field_serializer as fs
@@ -52,10 +52,10 @@ class PydanticSpikeContrast(BaseModel):
         return fv.validate_quantity(v, info)
     
 
-class SynchrotoolInit(ComplexityInit):
+class PydanticSynchrotoolInit(PydanticComplexityInit):
     pass
 
-class SynchrotoolDeleteSynchrofacts(BaseModel):
+class PydanticSynchrotoolDeleteSynchrofacts(BaseModel):
     class ModeOptions(Enum):
         delete = "delete"
         extract = "extract"
@@ -67,9 +67,9 @@ class SynchrotoolDeleteSynchrofacts(BaseModel):
 PydanticSynchrotool = make_class_model(
     "Synchrotool",
     {
-        "constructor": SynchrotoolInit,
+        "constructor": PydanticSynchrotoolInit,
         "annotate_synchrofacts": None,
-        "delete_synchrofacts": SynchrotoolDeleteSynchrofacts,
+        "delete_synchrofacts": PydanticSynchrotoolDeleteSynchrofacts,
         "pdf": None,
     }
 )

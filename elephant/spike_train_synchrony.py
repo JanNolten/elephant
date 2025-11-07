@@ -265,7 +265,7 @@ class Synchrotool(Complexity):
 
     """
 
-    @validate_with(SynchrotoolInit)
+    @validate_with(PydanticSynchrotoolInit)
     def __init__(self, spiketrains,
                  sampling_rate,
                  bin_size=None,
@@ -282,7 +282,7 @@ class Synchrotool(Complexity):
                                           spread=spread,
                                           tolerance=tolerance)
 
-    @validate_with(SynchrotoolDeleteSynchrofacts)
+    @validate_with(PydanticSynchrotoolDeleteSynchrofacts)
     def delete_synchrofacts(self, threshold, in_place=False, mode='delete'):
         """
         Delete or extract synchronous spiking events.

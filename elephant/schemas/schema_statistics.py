@@ -309,7 +309,7 @@ class PydanticComplexityPdf(BaseModel):
     def validate_quantity(cls, v, info):
         return fv.validate_quantity(v, info)
 
-class ComplexityInit(BaseModel):
+class PydanticComplexityInit(BaseModel):
     spiketrains: list = Field(..., description="List of neo.SpikeTrain objects with common t_start/t_stop")
     sampling_rate: Optional[Any] = Field(None, description="Sampling rate (1/time)")
     bin_size: Optional[Any] = Field(None, description="Width of histogram bins")
@@ -346,7 +346,7 @@ class ComplexityInit(BaseModel):
 PydanticComplexity = make_class_model(
     "Complexity",
     {
-        "constructor": ComplexityInit,
+        "constructor": PydanticComplexityInit,
         "pdf": None,
     }
 )

@@ -112,7 +112,7 @@ class PydanticGetsseStartAndEndTimeBins(BaseModel):
 
     sse: dict = Field(..., description="Dictionary of pixel postion as keys and sets")
 
-class ASSETInit(BaseModel):
+class PydanticASSETInit(BaseModel):
     class BinToleranceOptions(Enum):
         _default = "default"
 
@@ -145,7 +145,7 @@ class ASSETInit(BaseModel):
     def validate_time(cls, v, info):
         return fv.validate_time(v, info)
     
-class ASSETClusterMatrixEntries(BaseModel):
+class PydanticASSETClusterMatrixEntries(BaseModel):
     mask_matrix: Any = Field(..., description="To cluster boolean matrix")
     max_distance: float = Field(..., ge=0, description="Maximum distance between two elements")
     min_neighbours: int = Field(..., ge=0, description="Minimum number of elements for neighbourhood")
@@ -159,7 +159,7 @@ class ASSETClusterMatrixEntries(BaseModel):
     def validate_matrix(cls, v, info):
         return fv.validate_array(v, info, allowed_types=(np.ndarray,), allow_none=False)
     
-class ASSETExtractSynchronousEvents(BaseModel):
+class PydanticASSETExtractSynchronousEvents(BaseModel):
     cmat: Any = Field(..., description="Cluster matrix")
     ids: Optional[list] = Field(None, description="List of spike train IDs")
 
@@ -168,7 +168,7 @@ class ASSETExtractSynchronousEvents(BaseModel):
     def validate_matrix(cls, v, info):
         return fv.validate_array(v, info, allowed_types=(np.ndarray,), allow_none=False)
     
-class ASSETIntersectionMatrix(BaseModel):
+class PydanticASSETIntersectionMatrix(BaseModel):
     class NormalizationOptions(Enum):
         intersection = "intersection"
         mean = "mean"
@@ -176,7 +176,7 @@ class ASSETIntersectionMatrix(BaseModel):
 
     normalization: Optional[NormalizationOptions] = Field(None, description="Normalization type for intersection matrix")
 
-class ASSETJointProbabilityMatrix(BaseModel):
+class PydanticASSETJointProbabilityMatrix(BaseModel):
     class PrecisionOptions(Enum):
         _float = "float"
         _double = "double"
@@ -202,7 +202,7 @@ class ASSETJointProbabilityMatrix(BaseModel):
             warnings.warn("cuda_threads should be a multiple of 32", UserWarning)
         return v
 
-class ASSETMaskMatrices(BaseModel):
+class PydanticASSETMaskMatrices(BaseModel):
     matrices: list= Field(..., description="List of matrices to compare")
     thresholds: Union[float, list[float]] = Field(..., description="Threshold(s) per matrix")
 
@@ -227,7 +227,7 @@ class ASSETMaskMatrices(BaseModel):
             raise ValueError("matrices and thresholds need to have the same length")
         return self
 
-class ASSETProbabilityMatrixAnalytical(BaseModel):
+class PydanticASSETProbabilityMatrixAnalytical(BaseModel):
     class FiringRatesOptions(Enum):
         estimate = "estimate"
 
@@ -257,7 +257,7 @@ class ASSETProbabilityMatrixAnalytical(BaseModel):
     def validate_kernel_width(cls, v, info):
         return fv.validate_quantity(v, info)
     
-class ASSETProbabilityMatrixMonteCarlo(BaseModel):
+class PydanticASSETProbabilityMatrixMonteCarlo(BaseModel):
     class SurrogateMethodOptions(Enum):
         dither_spike_train = "dither_spike_train"
         dither_spikes = "dither_spikes"
@@ -286,14 +286,14 @@ class ASSETProbabilityMatrixMonteCarlo(BaseModel):
 PydanticASSET = make_class_model(
     "ASSET",
     {
-        "constructor": ASSETInit,
-        "cluster_matrix_entries": ASSETClusterMatrixEntries,
-        "extract_synchronous_events": ASSETExtractSynchronousEvents,
-        "intersection_matrix": ASSETIntersectionMatrix,
+        "constructor": PydanticASSETInit,
+        "cluster_matrix_entries": PydanticASSETClusterMatrixEntries,
+        "extract_synchronous_events": PydanticASSETExtractSynchronousEvents,
+        "intersection_matrix": PydanticASSETIntersectionMatrix,
         "is_symmetric": None,
-        "joint_probability_matrix": ASSETJointProbabilityMatrix,
-        "mask_matrices": ASSETMaskMatrices,
-        "probability_matrix_analytical": ASSETProbabilityMatrixAnalytical,
-        "probability_matrix_montecarlo": ASSETProbabilityMatrixMonteCarlo,
+        "joint_probability_matrix": PydanticASSETJointProbabilityMatrix,
+        "mask_matrices": PydanticASSETMaskMatrices,
+        "probability_matrix_analytical": PydanticASSETProbabilityMatrixAnalytical,
+        "probability_matrix_montecarlo": PydanticASSETProbabilityMatrixMonteCarlo,
     }
 )

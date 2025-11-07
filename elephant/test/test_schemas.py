@@ -326,7 +326,7 @@ def test_valid_Complexity(make_spiketrains, make_pq_single_quantity):
 	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity }
 	assert_both_succeed_consistently(
 		elephant.statistics.Complexity,
-		ComplexityInit,
+		PydanticComplexityInit,
 		valid,
 	)
 

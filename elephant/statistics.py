@@ -1430,7 +1430,7 @@ class Complexity(object):
 
     """
 
-    @validate_with(ComplexityInit)
+    @validate_with(PydanticComplexityInit)
     def __init__(self, spiketrains,
                  sampling_rate=None,
                  bin_size=None,
