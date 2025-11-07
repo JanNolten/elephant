@@ -87,9 +87,15 @@ def test_model_json_schema():
 
 """
 Checking for consistent behavior between Elephant functions and Pydantic models.
-Tests become irrelevant if Pydantic models are implemented for elephant functions.
-So these tests need to then stop checking consistency and just test the Pydantic models directly.
+Tests bypass validate_with decorator if it is already implemented for that function
+so consistency is checked correctly
 """
+
+def call_elephant_function(elephant_fn, kwargs):
+	if hasattr(elephant_fn, "__wrapped__"):
+		elephant_fn.__wrapped__(**kwargs)
+	else:
+		elephant_fn(**kwargs)
 
 def assert_both_succeed_consistently(elephant_fn, model_cls, kwargs):
 	"""Call both the Elephant function and the Pydantic model with the same kwargs.
@@ -101,7 +107,7 @@ def assert_both_succeed_consistently(elephant_fn, model_cls, kwargs):
 	- kwargs: dict of keyword arguments to pass to both
 	"""
 	try:
-		elephant_fn(**kwargs)
+		call_elephant_function(elephant_fn, kwargs)
 	except Exception as e:
 		assert False, f"Elephant function raised an exception: {e}"
 
@@ -120,7 +126,7 @@ def assert_both_warn_consistently(elephant_fn, model_cls, kwargs):
 	- kwargs: dict of keyword arguments to pass to both
 	"""
 	with pytest.warns(Warning) as w1:
-		elephant_fn(**kwargs)
+		call_elephant_function(elephant_fn, kwargs)
 	with pytest.warns(Warning) as w2:
 		model_cls(**kwargs)
 
@@ -140,7 +146,7 @@ def assert_both_raise_consistently(elephant_fn, model_cls, kwargs, *, same_type=
 	- expected_exception: optional exception type that both must be instances of
 	"""
 	with pytest.raises(Exception) as e1:
-		elephant_fn(**kwargs)
+		call_elephant_function(elephant_fn, kwargs)
 	with pytest.raises(Exception) as e2:
 		model_cls(**kwargs)
 
