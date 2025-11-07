@@ -225,7 +225,7 @@ def model_validate_spiketrains_same_t_start_stop(spiketrains, t_start, t_stop, n
         if t_start>t_stop:
             raise ValueError(f"{name} has t_start > t_stop")
                 
-def model_validate_spiketrains_same_t_start_stop(spiketrain_i, spiketrain_j):
+def model_validate_two_spiketrains_same_t_start_stop(spiketrain_i, spiketrain_j):
     if spiketrain_i.t_start != spiketrain_j.t_start:
             raise ValueError("spiketrain_i and spiketrain_j need to have the same t_start")
     if spiketrain_i.t_stop != spiketrain_j.t_stop:
