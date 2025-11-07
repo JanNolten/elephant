@@ -115,6 +115,7 @@ def validate_type_length(value, info, allowed_types: tuple, allow_none: bool, mi
 
 def validate_array_content(value, info, allowed_types: tuple, allow_none: bool, min_length: int, allowed_content_types: tuple, min_length_content: int = 0):
     validate_type_length(value, info, allowed_types, allow_none, min_length)
+    hasContentLength = False
     for i, item in enumerate(value):
         if not isinstance(item, allowed_content_types):
             raise TypeError(f"Element {i} in {info.field_name} must be {allowed_content_types}, not {type(item).__name__}")
