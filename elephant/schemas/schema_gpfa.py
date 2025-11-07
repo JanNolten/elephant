@@ -18,7 +18,7 @@ import elephant.schemas.field_serializer as fs
 import sklearn
 
 
-class GPFAInit(BaseModel):
+class PydanticGPFAInit(BaseModel):
     """
     Constructor parameters for elephant.gpfa.gpfa.GPFA
     """
@@ -158,7 +158,7 @@ class PydanticGPFASetTransformRequest(BaseModel):
 PydanticGPFA = make_class_model(
     "GPFA",
     {
-        "constructor": GPFAInit,
+        "constructor": PydanticGPFAInit,
         "fit": PydanticGPFAFit,
         "transform": PydanticGPFATransform,
         "fit_transform": PydanticGPFAFitTransform,
