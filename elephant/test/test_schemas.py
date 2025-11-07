@@ -92,8 +92,9 @@ so consistency is checked correctly
 """
 
 def call_elephant_function(elephant_fn, kwargs):
-	if hasattr(elephant_fn, "__wrapped__"):
-		elephant_fn.__wrapped__(**kwargs)
+	if hasattr(elephant_fn, "_is_validate_with"):
+		kwargs["not_validate"]=True
+		elephant_fn(**kwargs)
 	else:
 		elephant_fn(**kwargs)
 
