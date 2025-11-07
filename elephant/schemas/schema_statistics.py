@@ -101,7 +101,8 @@ class PydanticInstantaneousRate(BaseModel):
     def validate_model(self) -> Self:             
         if(isinstance(self.kernel, Kernel) and self.cutoff < self.kernel.min_cutoff):
             warnings.warn(f"cutoff {self.cutoff} is smaller than the minimum cutoff {self.kernel.min_cutoff} of the kernel", UserWarning)
-        fv.model_validate_spiketrains_same_t_start_stop(self.spiketrains, self.t_start, self.t_stop, warning=True)
+        if isinstance(self.spiketrains, list):
+            fv.model_validate_spiketrains_same_t_start_stop(self.spiketrains, self.t_start, self.t_stop, warning=True)
         return self
 
 class PydanticTimeHistogram(BaseModel):

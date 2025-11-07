@@ -202,10 +202,10 @@ def validate_key_in_tuple(value : str, info, t: tuple):
 
 # ---- Model validation helpers ----
 
-def model_validate_spiketrains_same_t_start_stop(spiketrain, t_start, t_stop, name: str = "spiketrains", warning: bool = False):
+def model_validate_spiketrains_same_t_start_stop(spiketrains, t_start, t_stop, name: str = "spiketrains", warning: bool = False):
     if(t_start is None or t_stop is None):
         first = True
-        for i, item in enumerate(spiketrain):
+        for i, item in enumerate(spiketrains):
             if first:
                 t_start = item.t_start
                 t_stop = item.t_stop
@@ -225,7 +225,7 @@ def model_validate_spiketrains_same_t_start_stop(spiketrain, t_start, t_stop, na
         if t_start>t_stop:
             raise ValueError(f"{name} has t_start > t_stop")
                 
-def model_validate_spiketrains_sam_t_start_stop(spiketrain_i, spiketrain_j):
+def model_validate_spiketrains_same_t_start_stop(spiketrain_i, spiketrain_j):
     if spiketrain_i.t_start != spiketrain_j.t_start:
             raise ValueError("spiketrain_i and spiketrain_j need to have the same t_start")
     if spiketrain_i.t_stop != spiketrain_j.t_stop:
