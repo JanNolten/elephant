@@ -39,6 +39,8 @@ def get_length(obj) -> int:
         return obj.size
     elif isinstance(obj, (list,tuple)):
         return len(obj)
+    elif isinstance(obj, neo.core.spiketrainlist.SpikeTrainList):
+        return len(obj)
 
 
     
@@ -145,7 +147,7 @@ def validate_spiketrains(value, info, allowed_types = (list,), allow_none = Fals
 
 def validate_spiketrains_matrix(value, info, allowed_types = (elephant.trials.Trials, list[neo.core.spiketrainlist.SpikeTrainList], list[list[neo.core.SpikeTrain]]), allow_none = False, min_length = 1, check_rank_deficient = False):
     if isinstance(value, list):
-        validate_spiketrains(value, info, allowed_content_types=(neo.core.spiketrainlist,list[neo.core.SpikeTrain],))
+        validate_spiketrains(value, info, allowed_content_types=(neo.core.spiketrainlist.SpikeTrainList,list[neo.core.SpikeTrain],))
     else:
         validate_type(value, info, (elephant.trials.Trials,), allow_none=False)
     if check_rank_deficient:
@@ -170,7 +172,7 @@ def validate_time_intervals(value, info, allowed_types = (list, pq.Quantity, np.
             raise ValueError(f"{info.field_name} is not allowed to be a matrix")
     return value
 
-def validate_array(value, info, allowed_types=(list, np.ndarray) , allow_none=False, min_length=1, allowed_content_types = None, min_length_content = 0):
+def validate_array(value, info, allowed_types=(list, np.ndarray, tuple) , allow_none=False, min_length=1, allowed_content_types = None, min_length_content = 0):
     if allowed_content_types is None:
         validate_type_length(value, info, allowed_types, allow_none, min_length)
     else:

@@ -65,7 +65,7 @@ class PydanticInstantaneousRate(BaseModel):
     spiketrains: Any = Field(..., description="Input spike train(s)")
     sampling_period: Any = Field(..., gt=0, description="Time stamp resolution of spike times")
     kernel: Union[KernelOptions, Any] = Field(KernelOptions.auto, description="Kernel for convolution")
-    cutoff: Optional[float] = Field(5.0, gt=0, description="cutoff of probability distribution")
+    cutoff: Optional[float] = Field(5.0, ge=0, description="cutoff of probability distribution")
     t_start: Optional[Any] = Field(None, ge=0, description="Start time")
     t_stop: Optional[Any] = Field(None, gt=0, description="Stop time")
     trim: Optional[bool] = Field(False, description="Only return region of convolved signal")
@@ -78,9 +78,11 @@ class PydanticInstantaneousRate(BaseModel):
     @field_validator("spiketrains")
     @classmethod
     def validate_spiketrains(cls, v, info):
-        if(isinstance(v, list)):
-            return fv.validate_spiketrains(v, info, allowed_types=(list,), allowed_content_types=(neo.SpikeTrain,))
-        return fv.validate_spiketrain(v, info, allowed_types=(neo.SpikeTrain, elephant.trials.Trials))
+        if(isinstance(v, (list, neo.core.spiketrainlist.SpikeTrainList))):
+            return fv.validate_spiketrains(v, info, allowed_types=(list, neo.core.spiketrainlist.SpikeTrainList), allowed_content_types=(neo.SpikeTrain,))
+        if(isinstance(v, neo.SpikeTrain)):
+            return fv.validate_spiketrain(v, info, allowed_types=(neo.SpikeTrain,))
+        return fv.validate_spiketrains_matrix(v, info)
 
     @field_validator("sampling_period")
     @classmethod
@@ -90,7 +92,9 @@ class PydanticInstantaneousRate(BaseModel):
     @field_validator("kernel")
     @classmethod
     def validate_kernel(cls, v, info):
-        return fv.validate_type(v, info, allowed_types=(cls.KernelOptions, Kernel), allow_none=False)
+        if v == cls.KernelOptions.auto.value:
+            return v
+        return fv.validate_type(v, info, allowed_types=(Kernel), allow_none=False)
     
     @field_validator("t_start", "t_stop")
     @classmethod
@@ -187,13 +191,13 @@ class PydanticCv(BaseModel):
         omit = "omit"
         _raise = "raise"
 
-    a: Any = Field(..., description="Input array")
+    args: Any = Field(..., description="Input array")
     axis: Union[int, None] = Field(0, description="Compute statistic axis")
     nan_policy: NanPolicyOptions = Field(NanPolicyOptions.propagate, description="How handle input NaNs")
     ddof: Optional[int] = Field(0, ge=0, description="Delta Degrees Of Freedom")
     keepdims: Optional[bool] = Field(False, description="leave reduced axes in one-dimensional result")
 
-    @field_validator("a")
+    @field_validator("args")
     @classmethod
     def validate_array(cls, v, info):
         return fv.validate_array(v, info)
@@ -283,7 +287,7 @@ class PydanticFanofactor(BaseModel):
     @field_validator("spiketrains")
     @classmethod
     def validate_spiketrains(cls, v, info):
-        return fv.validate_spiketrains(v, info)
+        return fv.validate_spiketrains(v, info, min_length=0)
     
     @field_validator("warn_tolerance")
     @classmethod
