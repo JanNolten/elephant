@@ -8,19 +8,19 @@ import elephant
 
 from pydantic import ValidationError
 
-from elephant.schemas.schema_asset import *;
-from elephant.schemas.schema_cell_assembly_detection import *;
-from elephant.schemas.schema_change_point_detection import *;
-from elephant.schemas.schema_cubic import *;
-from elephant.schemas.schema_functional_connectivity import *;
-from elephant.schemas.schema_spade import *;
-from elephant.schemas.schema_unitary_event_analysis import *;
-from elephant.schemas.schema_statistics import *;
-from elephant.schemas.schema_spike_train_correlation import *;
-from elephant.schemas.schema_spike_train_dissimilarity import *;
-from elephant.schemas.schema_spike_train_synchrony import *;
-from elephant.schemas.schema_gpfa import *;
-from elephant.schemas.schema_spike_train_surrogates import *;
+from elephant.schemas.schema_asset import *
+from elephant.schemas.schema_cell_assembly_detection import *
+from elephant.schemas.schema_change_point_detection import *
+from elephant.schemas.schema_cubic import *
+from elephant.schemas.schema_functional_connectivity import *
+from elephant.schemas.schema_spade import *
+from elephant.schemas.schema_unitary_event_analysis import *
+from elephant.schemas.schema_statistics import *
+from elephant.schemas.schema_spike_train_correlation import *
+from elephant.schemas.schema_spike_train_dissimilarity import *
+from elephant.schemas.schema_spike_train_synchrony import *
+from elephant.schemas.schema_gpfa import *
+from elephant.schemas.schema_spike_train_surrogates import *
 
 
 def test_model_json_schema():
