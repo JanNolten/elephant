@@ -2,8 +2,7 @@ import quantities as pq
 from typing import (
     Any,
     Union,
-    Optional,
-    Self
+    Optional
 )
 from pydantic import (
     BaseModel,
@@ -53,7 +52,7 @@ class PydanticSurrogates(BaseModel, extra='allow'):
         return fv.validate_quantity(value, info, allow_none=True)
     
     @model_validator(mode="after")
-    def validate_model(self) -> Self:             
+    def validate_model(self):             
         if isinstance(self.spiketrain, list) and self.method != "trial_shifting":
             raise ValueError("spiketrain is only allowed to be a list when the method is trial_shifting")
         if self.dt is None and self.method is not "randomise_spikes" and self.method is not "shuffle_isis":
@@ -232,7 +231,7 @@ class PydanticBinShuffling(BaseModel):
         return fv.validate_quantity(v, info, allow_none=True)
     
     @model_validator(mode="after")
-    def validate_model(self) -> Self:             
+    def validate_model(self):             
         if self.sliding and not isinstance(self, elephant.conversion.BinnedSpikeTrain):
             warnings.warn("sliding is only implemented for binned spike trains", UserWarning)
         return self

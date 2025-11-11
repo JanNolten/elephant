@@ -2,7 +2,6 @@ import quantities as pq
 from typing import (
     Any,
     Union,
-    Self,
     Optional
 )
 from pydantic import (
@@ -69,7 +68,7 @@ class PydanticJointJWindowAnalysis(BaseModel):
         return binary
     
     @model_validator(mode="after")
-    def validate_model(self) -> Self:             
+    def validate_model(self):             
         winsize_bintime = self.win_size.magnitude // self.bin_size.magnitude
         winstep_bintime = self.win_step.magnitude // self.bin_size.magnitude
 

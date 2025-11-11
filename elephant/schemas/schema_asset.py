@@ -3,7 +3,6 @@ import numpy as np
 from typing import (
     Any,
     Union,
-    Self,
     Optional
 )
 from pydantic import (
@@ -222,7 +221,7 @@ class PydanticASSETMaskMatrices(BaseModel):
         raise TypeError(f"{info.field_name} must be a float or list of floats")
     
     @model_validator(mode="after")
-    def check_correctTypeCombination(self) -> Self:             
+    def check_correctTypeCombination(self):             
         if(isinstance(self.thresholds, list) and len(self.matrices) != len(self.thresholds)):
             raise ValueError("matrices and thresholds need to have the same length")
         return self

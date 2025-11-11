@@ -3,7 +3,6 @@ from typing import (
     Any,
     Union,
     Optional,
-    Self
 )
 from pydantic import (
     BaseModel,
