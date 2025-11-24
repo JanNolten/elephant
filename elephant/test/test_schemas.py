@@ -301,9 +301,9 @@ def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity, make_spik
 ])
 def test_invalid_dynamic_enum(make_spiketrains, make_pq_single_quantity, surr_method):
 	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "winlen": 1, "dither": 15*pq.s, "n_surr": 1, "surr_method": surr_method}
-	with pytest.raises(Exception):
+	with pytest.raises(ValidationError):
 		PydanticPValueSpectrum(**valid)
-	with pytest.raises(Exception):
+	with pytest.raises(ValueError):
 		elephant.spade.pvalue_spectrum(**valid)
 
 
@@ -321,7 +321,7 @@ def test_valid_analog_signal(make_analog_signal):
 ], indirect=["fixture"])
 def test_invalid_analog_signal(fixture):
 	invalid = { "histogram": fixture}
-	with pytest.raises(Exception):
+	with pytest.raises(TypeError):
 		PydanticCubic(**invalid)
-	with pytest.raises(Exception):
+	with pytest.raises((AttributeError, ValueError)):
 		elephant.cubic.cubic(**invalid)
