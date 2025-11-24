@@ -85,6 +85,13 @@ def test_model_json_schema():
 		schema = cls.model_json_schema()
 		assert isinstance(schema, dict)
 
+
+"""
+Checking for consistent behavior between Elephant functions and Pydantic models.
+Tests bypass validate_with decorator if it is already implemented for that function
+so consistency is checked correctly
+"""
+
 # Deactivate validation happening in the decorator of the elephant functions for all tests in this module to keep checking consistent behavior
 @pytest.fixture(autouse=True)
 def disable_validation_for_tests():
@@ -280,7 +287,7 @@ def test_valid_dynamic_enum(make_spiketrains, make_pq_single_quantity, make_spik
 	valid = { "spiketrains": make_spiketrains, "bin_size": make_pq_single_quantity, "winlen": 1, "dither": 15*pq.s, "n_surr": 1, "surr_method": "bin_shuffling", "sliding": True}
 	assert(isinstance(PydanticPValueSpectrum(**valid), PydanticPValueSpectrum))
 	# just check it runs without error
-	elephant.statistics.pvalue_spectrum(**valid)
+	elephant.spade.pvalue_spectrum(**valid)
 
 @pytest.mark.parametrize("surr_method", [
 	"JointISI",
